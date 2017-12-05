@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>inputs</title>
+	<link rel="stylesheet" href="./lib/css/element-ui1.4.4.css">
+	<link rel="stylesheet" href="./css/index.css"> 
+    <script src="./lib/js/vue.js"></script> 
+    <!-- <script src="./lib/js/element-ui1.4.4.js"></script> -->
+    <script>
+
+Vue.config.productionTip = false
+    </script>
+</head>
+<body>
+		<div id='main'>
+		<div>{{msg}}</div>
+		<div>{{strobj}}</div>
+		<string-input v-model='strobj'></string-input>
+		</div>
+</body>
+<script type="text/x-template" id="string-input-template">
+  <div class="edit-div"
+   v-html="innerText"
+ :contenteditable="canEdit"
+ :spellcheck='canEdit'
+ @focus="isLocked = true"
+ @blur="isLocked = false"
+ @input="changeText">
+
+ </div>
+</script>
+
+
+<script>  
+ 
+var  utility={ 
+    isNumber:function(o){
+        return  Object.prototype.toString.call(o)=="[object Number]";
+    }, 
+    isString:function(o){
+        return  Object.prototype.toString.call(o)=="[object String]";
+    }, 
+    isBoolean:function(o){
+        return  Object.prototype.toString.call(o)=="[object Boolean]";
+    }, 
+    isObj:function(o){
+        return  Object.prototype.toString.call(o)=="[object Object]";
+    },
+    isArray:function(o){
+        return  Object.prototype.toString.call(o)=="[object Array]";
+    },
+    isNULL:function(o){
+        return  Object.prototype.toString.call(o)=="[object Null]";
+    }, 
+    isWhat:function(o){
+        return Object.prototype.toString.call(o);
+    } 
+}
+
+
+	Vue.component('string-input', {
+  		props: {   
+            value: { 
+                default: null
+            },
+            canEdit: {
+                type: Boolean,
+                default: true
+            }
+		}, 
+        data(){
+            return {
+                innerText: this.value,
+                isLocked: false
+            }
+        },
+  		template: '#string-input-template' , 
+        watch: {
+            'value'(){
+                if (!this.isLocked || !this.innerText) {
+                    this.setValue();
+                }
+            }
+        },
+        methods: {
+            changeText(){
+                this.$emit('input', this.getValue());
+            },
+            getValue(){                
+                if(utility.isNULL(this.value)){
+                    return this.$el.innerHTML;
+                } 
+                if(utility.isString(this.value)){
+                    return this.$el.innerHTML;
+                }
+                if(utility.isNumber(this.value)){
+                    return Number(this.$el.innerHTML);
+                }
+                if(utility.isBoolean(this.value)){
+                    if(this.$el.innerHTML=='0'||this.$el.innerHTML=='false'){
+                        return false;
+                    }
+                    return Boolean(this.$el.innerHTML);
+                }
+                if(utility.isObj(this.value)){
+                    return JSON.parse(this.$el.innerHTML);
+                }
+                if(utility.isArray(this.value)){
+                    return JSON.parse(this.$el.innerHTML);
+                }
+            },
+            setValue(){
+                if(utility.isNULL(this.value)){
+                    this.innerText=this.value;
+                } 
+                if(utility.isString(this.value)){
+                    this.innerText=this.value;
+                }
+                if(utility.isNumber(this.value)){
+                    this.innerText=this.value;
+                }
+                if(utility.isBoolean(this.value)){
+                    this.innerText=this.value;
+                }
+                if(utility.isObj(this.value)){
+                    this.innerText=JSON.stringify(this.value);
+                }
+                if(utility.isArray(this.value)){
+                    this.innerText=JSON.stringify(this.value);
+                }
+            }
+        }, 
+        mounted:function(){ 
+            console.log("beforeCreate:"+this.value);
+
+        }
+	});
+	var app = new Vue({
+  		el: '#main',
+  		data:{
+  			msg:'aa',
+  			strobj:[]
+  		}
+	});
+</script> 
+
+<style lang="scss" rel="stylesheet/scss">
+    .edit-div {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        word-break: break-all;
+        outline: none;
+        user-select: text;
+        white-space: pre-wrap;
+        text-align: left;
+        &[contenteditable=true]{
+            user-modify: read-write-plaintext-only;
+            &:empty:before {
+                content: attr(placeholder);
+                display: block;
+                color: #ccc;
+            }
+        }
+    }
+</style>
+</html>
