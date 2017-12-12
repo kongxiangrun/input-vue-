@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>inputs</title>
+	<title>var-input</title>
 	<link rel="stylesheet" href="./lib/css/element-ui1.4.4.css">
 	<link rel="stylesheet" href="./css/index.css"> 
     <script src="./lib/js/vue.js"></script> 
@@ -15,42 +15,31 @@ Vue.config.productionTip = false
 </head>
 <body>
 		<div id='main'>
-		<div>{{msg}}</div>
-		<div>{{strobj}}</div> 
-		<obj-input v-model='strobj'></obj-input>
+	   	<div style="border:1px solid black;">{{obj1}}<br/>{{obj2}}<br/>{{obj3}}<br/>{{obj4}}</div> 
+            <var-input v-model='obj1'></var-input>
+            <var-input v-model='obj2'></var-input>
+            <var-input v-model='obj3'></var-input>
+            <var-input v-model='obj4'></var-input>
+
+
+            <input type='button' @click="changeObj(obj1,'num')" value='变obj1 num'></input>
+            <input type='button' @click="changeObj(obj1,'str')" value='变obj1 str'></input>
+            <input type='button' @click="changeObj(obj1,'bool')" value='变obj1 bool'></input>
+            <input type='button' @click="changeObj(obj1,'null')" value='变obj1 null'></input>
+
+
+            <input type='button' @click="sss" value='sss'></input>
 		</div>
 </body>
-<script type="text/x-template" id="obj-input-template">
-  <div class="edit-div" 
+<script type="text/x-template" id="var-input-template">
+  <div :class="['varedit-div',getCss()] "  
  :contenteditable="canEdit"
  :spellcheck='canEdit'
  @focus="isLocked = true"
  @blur="isLocked = false"
- @input="changeText">
-<div  v-if="dataType=='[object Number]'"  > 
-Number
-</div>
-<div  v-else-if="dataType=='[object String]'"  > 
-String
-</div>
-<div  v-else-if="dataType=='[object Boolean]'"  > 
-Boolean
-</div>
-<div  v-else-if="dataType=='[object Object]'"  >  
-{
-  <p v-for="item in value">
-  <input v-model='item'/>
-    {{item}}:{{value[item]}}
-  </p>
-  }
-</div>
-<div  v-else-if="dataType=='[object Array]'"  > 
-Array
-</div>
-<div  v-else-if="dataType=='[object Null]'"  > 
-Null
-</div>
- </div>
+ @input.stop="changeText"  
+ @keydown.stop="keyDown($event)"
+ >{{innerText}}</div>
 </script>
 
 
@@ -81,7 +70,7 @@ var  utility={
 }
 
 
-	Vue.component('obj-input', {
+	Vue.component('var-input', {
   		props: {   
             value: { 
                 default: null
@@ -98,11 +87,11 @@ var  utility={
                 dataType:null
             }
         },
-  		template: '#obj-input-template' , 
+  		template: '#var-input-template' , 
         watch: {
             'value'(){
-                if (!this.isLocked || !this.innerText) {
-                    this.setValue();
+                if (!this.isLocked ) {
+                    this.setValue(); 
                 }
             }
         },
@@ -152,42 +141,128 @@ var  utility={
                 if(utility.isArray(this.value)){
                     this.innerText=JSON.stringify(this.value);
                 }
+            },
+            keyDown(ev){
+                if(ev.keyCode==8&&this.value==''){
+                    this.value=null;    
+                }
+            },
+            getCss(){
+                switch(utility.isWhat(this.value)){
+                    case "[object Null]":
+                        return "ve-null";
+                    case "[object Boolean]":
+                        return "ve-bool"; 
+                    case "[object String]":
+                        return "ve-str";
+                    case "[object Number]":
+                        return "ve-num";
+                    default:
+                        return ""
+                }
             }
         }, 
         mounted:function(){ 
-            this.dataType=utility.isWhat(this.value); 
+            this.dataType=utility.isWhat(this.value);
             console.log("beforeCreate:"+this.value);
-            console.log("beforeCreate:"+this.dataType);
-
+            console.log("beforeCreate:"+this.dataType); 
         }
 	});
 	var app = new Vue({
   		el: '#main',
   		data:{
   			msg:'aa',
-  			strobj:{a:"a"}
-  		}
+            obj1:111,
+            obj2:"14123",
+            obj3:true,
+            obj4:null
+  		},
+
+        methods: {
+            sss(){
+                console.log(this.obj1);
+                console.log(utility.isWhat(this.obj1));
+            },
+            changeObj(o,type){
+                console.log(o);
+                console.log(type);
+
+                if('str'==type){
+                    o=o+'';
+                }else if('num'==type){
+                    o=Number(o);
+                }else if('bool'==type){
+
+                    if(o=='0'||o=='false'){
+                        o=false;
+                    }
+                    o= Boolean(o); 
+                }else if('null'==type){
+                    o=null;
+                }
+                this.obj1=o;
+            }
+        }
 	});
 </script> 
 
 <style lang="scss" rel="stylesheet/scss">
-    .edit-div {
+    .varedit-div {
         width: 100%;
-        height: 100%;
-        overflow: auto;
+        height: 100%; 
         word-break: break-all;
         outline: none;
+        box-sizing: border-box;
         user-select: text;
-        white-space: pre-wrap;
-        text-align: left;
-        &[contenteditable=true]{
-            user-modify: read-write-plaintext-only;
-            &:empty:before {
-                content: attr(placeholder);
-                display: block;
-                color: #ccc;
-            }
-        }
+        border: 1px solid;
+        border-color: transparent; 
+        /*white-space: pre-wrap;*/
+        text-align: left; 
     }
+
+
+    .varedit-div:focus, .jsoneditor-field:focus, .varedit-div:hover, .jsoneditor-field:hover, .jsoneditor-search-highlight {
+    background-color: #FFFFAB;
+    border: 1px solid yellow;
+    border-radius: 2px;
+}
+
+
+.ve-num
+{
+    color: #CF6A4C;
+}
+.ve-str
+{
+    color: #8F9D6A
+}
+.ve-bool
+{
+    color: #8d8dff;
+}
+.ve-null
+{
+    color: #888888;
+}
+.ve-null:empty::before{
+    color:lightgrey;
+    content:'null';
+}
+
+.ve-error:after
+{
+    content: "!";
+    display: inline-block;
+    /*position: absolute;*/
+    /* width: 100%; */
+    /* left: 0px; */
+    right: 0; 
+    color:red;
+
+}
 </style>
 </html>
+
+
+
+
